@@ -29,8 +29,8 @@ export const FieldAddress: React.FC = () => {
       ]);
 
       setValue('cep', postalCode ?? '');
-      setValue('lat', location.lat);
-      setValue('lng', location.lng);
+      setValue('lat', location?.lat);
+      setValue('lng', location?.lng);
     },
     [setPlacesValue, clearSuggestions, setValue],
   );

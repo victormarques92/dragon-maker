@@ -26,8 +26,8 @@ export const FieldCep: React.FC = () => {
             const location = await getLocation(fullAddress);
 
             setValue('address', fullAddress);
-            setValue('lat', location.lat);
-            setValue('lng', location.lng);
+            setValue('lat', location?.lat);
+            setValue('lng', location?.lng);
           }
         } catch (error) {
           console.error('Erro ao buscar CEP:', error);
