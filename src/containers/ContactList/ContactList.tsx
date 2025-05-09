@@ -1,67 +1,66 @@
-import {
-  Box,
-  List,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Box, List, Stack, Typography } from '@mui/material';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Contactitem } from '../../components';
-import type { ContactDTO } from '../../dtos';
+import type { ContactDTO, OrderByTypesDTO } from '../../dtos';
+import { sortByName } from '../../helpers';
 import {
   useContactList,
   useContactSelected,
   useDrawer,
+  useUser,
 } from '../../stores';
 import { DeleteContact } from './DeleteContact';
 import { EditContact } from './EditContact';
+import { FilterList } from './FilterList';
 import { RegisterContact } from './RegisterContact';
 
 export const ContactList: React.FC = () => {
+  const { user } = useUser();
   const { contactList } = useContactList();
   const { currentContact, setCurrentContact } =
     useContactSelected();
   const { setOpenDrawer } = useDrawer();
   const [search, setSearch] = useState('');
+  const [orderBy, setOrderBy] = useState<OrderByTypesDTO>('asc');
 
   const filteredContacts = useMemo(() => {
     const query = search.trim().toUpperCase();
 
-    return contactList.filter(
+    const contacts = contactList.filter(
+      contact => contact.createdBy === user?.id,
+    );
+
+    const filtered = contacts.filter(
       contact =>
         contact.name.toUpperCase().includes(query) ||
         contact.cpf.includes(search),
     );
-  }, [search, contactList]);
 
-  const handleSelect = useCallback((contact: ContactDTO) => {
-    setOpenDrawer(false);
-    setCurrentContact(contact);
-  }, []);
+    return sortByName(filtered, orderBy);
+  }, [search, contactList, orderBy]);
 
-  const renderEmptyMessage = () => {
-    if (contactList.length === 0) {
-      return (
-        <Typography
-          color="textSecondary"
-          fontStyle="italic"
-          textAlign="center"
-        >
-          Lista vazia
-        </Typography>
-      );
-    }
+  const handleSelect = useCallback(
+    (contact: ContactDTO) => {
+      setOpenDrawer(false);
+      setCurrentContact(contact);
+    },
+    [setCurrentContact, setOpenDrawer],
+  );
 
-    return (
+  const renderEmptyMessage = useCallback(
+    () => (
       <Typography
         color="textSecondary"
         fontStyle="italic"
         textAlign="center"
       >
-        Nenhum contato encontrado
+        {contactList.length === 0
+          ? 'Lista vazia'
+          : 'Nenhum contato encontrado'}
       </Typography>
-    );
-  };
+    ),
+    [contactList.length],
+  );
 
   return (
     <>
@@ -87,10 +86,11 @@ export const ContactList: React.FC = () => {
             <RegisterContact />
           </Stack>
 
-          <TextField
-            label="Filtrar por nome ou CPF"
-            onChange={e => setSearch(e.target.value)}
-            value={search}
+          <FilterList
+            search={search}
+            onChangeSearch={setSearch}
+            orderBy={orderBy}
+            onChangeOrderBy={setOrderBy}
           />
         </Box>
 

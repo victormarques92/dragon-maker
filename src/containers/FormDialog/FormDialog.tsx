@@ -117,7 +117,7 @@ export const FormDialog: React.FC<Props> = ({
             <Button
               variant="text"
               color="error"
-              onClick={onClose}
+              onClick={handleClose}
             >
               Cancelar
             </Button>

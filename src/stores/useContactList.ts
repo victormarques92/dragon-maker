@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { ContactDTO } from '../dtos';
+import { useUser } from './useUser';
 
 interface Store {
   contactList: ContactDTO[];
@@ -9,22 +10,22 @@ interface Store {
   editContact: (updatedContact: ContactDTO) => void;
 }
 
-const sortByName = (list: ContactDTO[]) =>
-  [...list].sort((a, b) =>
-    a.name.localeCompare(b.name, 'pt-BR'),
-  );
-
 export const useContactList = create<Store>()(
   persist(
     (set, get) => ({
       contactList: [],
       setNewContact: (newContact: ContactDTO) => {
+        const { user } = useUser.getState();
+
         const contactList = get().contactList;
 
-        const updatedList = sortByName([
+        const updatedList = [
           ...contactList,
-          newContact,
-        ]);
+          {
+            ...newContact,
+            createdBy: user?.id as string,
+          },
+        ];
 
         set({ contactList: updatedList });
       },
@@ -35,14 +36,14 @@ export const useContactList = create<Store>()(
             : contact,
         );
 
-        set({ contactList: sortByName(updatedList) });
+        set({ contactList: updatedList });
       },
       removeContact: (contactId: string) => {
         const filtered = get().contactList.filter(
           contact => contact.id !== contactId,
         );
 
-        set({ contactList: sortByName(filtered) });
+        set({ contactList: filtered });
       },
     }),
     {
